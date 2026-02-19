@@ -326,3 +326,31 @@ body{
   clip:rect(0,0,0,0);border:0;
 }
 mark{background:rgba(59,130,246,.3);color:var(--text);padding:2px 0;border-radius:4px}
+/* ===== Operator Feedback Button ===== */
+
+.feedback-section {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.feedback-btn {
+  padding: 14px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: #F1F5F9;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feedback-btn:hover {
+  background: rgba(59,130,246,0.18);
+  border-color: rgba(59,130,246,0.5);
+}
+
+.feedback-btn:active {
+  transform: scale(0.98);
+}
