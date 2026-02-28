@@ -25,190 +25,188 @@ const sheetIncrease = document.getElementById("sheetIncrease");
 const sheetDecrease = document.getElementById("sheetDecrease");
 const sheetNote = document.getElementById("sheetNote");
 const sheetNoteContainer = document.getElementById("sheetNoteContainer");
+const effectRow = document.getElementById("effectRow");
+const sheetDivider = document.getElementById("sheetDivider");
+const sheetLabelWhat = document.getElementById("sheetLabelWhat");
 
-// ===== SCREENS: SINGLE-SHEET CONTENT (LOCKED V1) =====
-const PNEU_SHEET = {
-  title: "PNEU",
-  what:
-    "Sensors 41, 51, and 61 are located in the cabinet in front of the machine.",
-  increase: [
-    "Sensor 41 — Function: Pending confirmation",
-    "Sensor 51 — Function: Pending confirmation",
-    "Sensor 61 — Function: Pending confirmation",
-  ].join("\n"),
-  decrease:
-    "Air Reset: Momentarily shuts off and re-pressurizes the air system. Used to clear pneumatic sensor faults when the machine stops unexpectedly.",
-  note:
-    "Feedback Needed: Exact function of each sensor is pending confirmation. Submit corrections using the Feedback button on the Home screen.",
-};
+// ===== FEEDBACK LINK =====
+// Replace with your real Google Forms URL
+const FEEDBACK_URL = "https://forms.gle/REPLACE_ME";
 
-const SAND_SHEET = {
-  title: "SAND",
-  what:
-    "Sand Demand highlights when the hopper is low and sand is required.",
-  increase: [
-    "Sand Demand — Highlights when the hopper is low and sand is required.",
-    "Release — When highlighted, allows the system to automatically produce sand whenever the hopper becomes low.",
-  ].join("\n"),
-  decrease: [
-    "Mixer State:",
-    "Mixing — Sand and binder are actively mixing.",
-    "Transporting — Mixed sand is being transferred.",
-    "Ready — System is idle and prepared for demand.",
-  ].join("\n"),
-  note: "",
-};
-
-const LG_SHEET = {
-  title: "LG",
-  what: [
-    "Predose — Adjustable in strokes.",
-    "Used by operators to increase curing effect without increasing main gassing time.",
-    "(Function meaning pending confirmation.)",
-  ].join("\n"),
-  increase: [
-    "Post Dose — Adjustable in seconds.",
-    "Extends cycle time to allow additional curing.",
-    "(Function meaning pending confirmation.)",
-  ].join("\n"),
-  decrease: "",
-  note:
-    "Feedback Needed: Exact chemical function of Predose and Post Dose pending confirmation. Submit corrections using the Feedback button on the Home screen.",
-};
-
-// ===== PARAM DEFINITIONS (GASSING — LOCKED V1) =====
+// ===== PARAM DEFINITIONS =====
+// GASSING (mirrors HMI labels + order)
 const GASSING_PARAMS = {
-  timeToFinalPressure: {
-    name: "Time to Final Pressure",
-    what:
-      "Controls how long it takes for gas pressure to ramp from zero to full gassing pressure. (Function meaning pending confirmation.)",
-    increase:
-      "Creates a slower, more gradual pressure buildup. (Pending confirmation.)",
-    decrease:
-      "Creates a faster, more aggressive pressure buildup. (Pending confirmation.)",
-    note:
-      "When to adjust: Operators may reduce this setting when running complex cores that appear under-cured. (Pending confirmation.)\nObserved on the floor to improve curing in certain complex cores. Exact effect pending operator confirmation.",
-  },
-  gassingTime: {
-    name: "Gassing Time",
-    what:
-      "Controls how long gas flows into the core during the curing cycle.",
-    increase:
-      "Extends the duration of gas flow and increases total exposure time.",
-    decrease:
-      "Reduces gas exposure time.",
-    note:
-      "When to adjust: Increase if cores appear under-cured. Decrease if cure is sufficient and cycle time needs to be reduced.\nIncreasing this setting will increase total cycle time.",
-  },
-  gassingPressure: {
-    name: "Gassing Pressure",
-    what:
-      "Controls the pressure of gas injected into the core during curing.",
-    increase:
-      "Increases gas force into the core.",
-    decrease:
-      "Reduces gas force into the core.",
-    note:
-      "When to adjust: Increase if cores appear under-cured. Decrease if gas pressure is causing defects.\nIf set too high, operators may see holes or defects at vent locations and incomplete cores.",
-  },
   numGassings: {
-    name: "Number of Gassings",
-    what:
-      "Controls how many separate gas injections occur during one curing cycle.",
-    increase:
-      "Adds additional gas injection cycles, increasing total curing exposure.",
-    decrease:
-      "Reduces the number of gas injection cycles.",
-    note:
-      "When to adjust: May be increased for larger or thicker cores that are not fully curing with a single gassing cycle.\nRarely adjusted in normal production. Increasing this setting will increase total cycle time.",
+    name: "Number of gassings",
+    what: "How many times amine gas is injected during one curing cycle.",
+    increase: "May improve cure penetration on complex cores. Increases total cycle time/exposure.",
+    decrease: "May reduce cure strength on thick sections. Shorter cycle.",
+    note: "Pending confirmation: verify best practice for your jobs."
   },
   fillingPressure: {
-    name: "Filling Pressure",
-    what:
-      "Controls air pressure used during sand fill. (Function meaning pending confirmation.)",
-    increase: "Effect pending confirmation.",
-    decrease: "Effect pending confirmation.",
-    note:
-      "When to adjust: Adjustment guidelines pending confirmation.\nOn current production jobs, this setting is typically left at 0. Operators sometimes adjust slightly (example: pressure = 1) without confirmed documented effect.",
+    name: "Filling pressure [bar]",
+    what: "Air pressure used during the fill/blow phase before gassing.",
+    increase: "May pack sand harder (risk: overpack/venting issues).",
+    decrease: "May reduce packing (risk: incomplete fill).",
+    note: "Pending confirmation (your site commonly runs this near 0; some operators set pressure ~1)."
   },
   fillingTime: {
-    name: "Filling Time",
-    what:
-      "Controls duration of sand fill cycle. (Function meaning pending confirmation.)",
-    increase: "Effect pending confirmation.",
-    decrease: "Effect pending confirmation.",
-    note:
-      "When to adjust: Adjustment guidelines pending confirmation.\nOn current production jobs, this setting is typically left at 0. Operators sometimes adjust slightly (example: time = 2) without confirmed documented effect.",
+    name: "Filling time [s]",
+    what: "How long the fill/blow phase runs before gassing.",
+    increase: "May increase packing (risk: overfill/vent issues).",
+    decrease: "May reduce packing (risk: incomplete fill).",
+    note: "Pending confirmation (your site commonly runs this near 0; some operators set time ~2)."
+  },
+  gassingPressure: {
+    name: "Gassing pressure [bar]",
+    what: "Pressure used to inject gas into the core during curing.",
+    increase: "Stronger penetration (risk: vent marks/holes if too aggressive).",
+    decrease: "Reduced penetration (risk: under-cure).",
+    note: "Pending confirmation: define safe ranges for your core families."
+  },
+  gassingTime: {
+    name: "Gassing time [s]",
+    what: "How long gas flows into the core (primary cure exposure).",
+    increase: "Harder cure and longer cycle. Too high can cause holes/marks near vents on some jobs.",
+    decrease: "Risk of under-cure and soft cores.",
+    note: ""
+  },
+  timeToFinalPressure: {
+    name: "Time to final pressure [s]",
+    what: "Ramp time from start to full gassing pressure.",
+    increase: "Slower ramp; gentler pressure buildup.",
+    decrease: "Faster ramp; more aggressive pressure buildup.",
+    note: "Pending confirmation: operators use this for complex cores, but exact effect should be verified."
   },
   postHardening: {
-    name: "Post Hardening",
-    what:
-      "Controls additional time the core remains clamped after gassing ends. (Function meaning pending confirmation.)",
-    increase: "Effect pending confirmation.",
-    decrease: "Effect pending confirmation.",
-    note:
-      "When to adjust: Adjustment guidelines pending confirmation.\nNot typically adjusted in current production jobs.",
+    name: "Post-hardening time [s]",
+    what: "Extra time the core stays clamped after gassing stops.",
+    increase: "More stabilization time before opening.",
+    decrease: "Less stabilization time; may increase breakage risk on fragile cores.",
+    note: "Pending confirmation (usage varies)."
   },
   gasExhaust: {
-    name: "Gas Exhaust",
-    what:
-      "Controls how long the exhaust valve remains open after gassing to clear residual gas from the corebox.",
-    increase:
-      "Extends exhaust time and increases total cycle time.",
-    decrease:
-      "Shortens exhaust time and reduces cycle time.",
-    note:
-      "When to adjust: May be increased to improve gas clearing and reduce residual odor.\nIncreasing this setting will increase total cycle time.",
+    name: "Gas exhaust time valve [s]",
+    what: "How long exhaust valve stays open to clear residual gas after gassing.",
+    increase: "Less smell/residual gas; increases cycle time.",
+    decrease: "Faster cycle; may leave residual gas/odor.",
+    note: "Operators use this to reduce smell/odor. Verify site policy."
   },
   preHeating: {
-    name: "Preheating",
-    what:
-      "Controls preheating time before the gassing cycle begins. (Exact heating mechanism pending confirmation.)",
-    increase:
-      "Extends preheating time before gassing.",
-    decrease:
-      "Reduces preheating time.",
-    note:
-      "When to adjust: May be used when running a cold corebox to help improve initial curing.\nObserved on the floor to assist when starting with a cold box. Exact effect pending confirmation.",
-  },
+    name: "Pre-heating time [s]",
+    what: "Time allowed for the gas generator to reach operating temperature before running.",
+    increase: "More stable generation (useful for cold starts/cold conditions).",
+    decrease: "Faster start; may reduce stability on startup.",
+    note: "Pending confirmation: commonly used when box/conditions are cold."
+  }
 };
 
-// ===== MACHINE PARAMS (still placeholders until you give real list) =====
+// MACHINE (Shot Parameters — mirrors HMI labels + order)
 const MACHINE_PARAMS = {
-  machineMode: {
-    name: "Machine Mode (placeholder)",
-    what: "Placeholder. Replace with the real function shown on your Machine tab.",
-    increase: "Placeholder (if applicable).",
-    decrease: "Placeholder (if applicable).",
-    note: "We will replace these once you send the Machine screen items."
+  numberOfShots: {
+    name: "Number of shots",
+    what: "How many sand blows occur per cycle.",
+    increase: "Longer cycle; may improve fill on complex shapes (risk: overfill).",
+    decrease: "Shorter cycle; risk of incomplete fill.",
+    note: "Pending confirmation: common practice varies by job."
   },
-  cycleOption: {
-    name: "Cycle Option (placeholder)",
-    what: "Placeholder description.",
-    increase: "Placeholder.",
-    decrease: "Placeholder.",
-    note: ""
+  shootingPressure: {
+    name: "Shooting pressure [bar]",
+    what: "Air pressure used to blow sand into the corebox.",
+    increase: "Risk: flashing/venting issues if too high.",
+    decrease: "Risk: incomplete fill if too low.",
+    note: "Pending confirmation."
   },
-  timingSetting: {
-    name: "Timing Setting (placeholder)",
-    what: "Placeholder description.",
-    increase: "Placeholder.",
-    decrease: "Placeholder.",
-    note: ""
+  shootingTime: {
+    name: "Shooting time [s]",
+    what: "Duration of the sand blow.",
+    increase: "May overpack; increases cycle time.",
+    decrease: "Risk: incomplete cavity fill.",
+    note: "Pending confirmation."
   },
-  safetyInterlock: {
-    name: "Safety / Interlock (placeholder)",
-    what: "Placeholder description.",
-    increase: "Placeholder.",
-    decrease: "Placeholder.",
-    note: ""
+  exhaustTimeCorebox: {
+    name: "Exhaust time corebox [s]",
+    what: "Time the corebox exhaust remains open after shooting.",
+    increase: "More venting; increases cycle time.",
+    decrease: "Risk: trapped air / uneven fill.",
+    note: "Pending confirmation."
+  },
+  exhaustTimeValve: {
+    name: "Exhaust time valve [s]",
+    what: "Duration of valve exhaust after shooting.",
+    increase: "More venting; increases cycle time.",
+    decrease: "Risk: incomplete venting.",
+    note: "Pending confirmation."
+  },
+  sandRefillInterval: {
+    name: "Sand refill interval",
+    what: "How frequently automatic sand refills occur.",
+    increase: "Refills less often (risk: hopper runs low).",
+    decrease: "Refills more often (adds extra cycling).",
+    note: "Pending confirmation."
+  },
+  sandRefillTime1: {
+    name: "Sand refill time 1 [s]",
+    what: "Primary refill duration.",
+    increase: "Longer refill; increases refill time.",
+    decrease: "Shorter refill; risk of low sand.",
+    note: "Pending confirmation."
+  },
+  sandRefillTime2: {
+    name: "Sand refill time 2 [s]",
+    what: "Secondary refill duration (if used).",
+    increase: "Longer refill; increases refill time.",
+    decrease: "Shorter refill; may not complete refill.",
+    note: "Pending confirmation."
+  },
+  remainingShotsCounter: {
+    name: "Remaining shots counter",
+    what: "Displays remaining programmed shot count.",
+    increase: "",
+    decrease: "",
+    note: "Display only."
+  }
+};
+
+// ===== BOTTOM-SHEET ONLY SCREENS =====
+const SCREEN_SHEETS = {
+  pneu: {
+    whatLabel: "PNEU",
+    what: [
+      "Sensor 41 — Removal",
+      "Sensor 51 — Machine functions",
+      "Sensor 61 — Machine",
+      "",
+      "Reset Air: commonly used to clear sensor-related stops by cycling air off/on."
+    ].join("\n"),
+    note: "Sensors are located together in the cabinet in front of the machine. Details can be refined via operator feedback."
+  },
+  sand: {
+    whatLabel: "SAND",
+    what: [
+      "Sand Demand: indicates the hopper is low.",
+      "Release: enable to automatically make sand whenever it is low.",
+      "",
+      "Mixer states shown: Mixing • Transporting • Ready."
+    ].join("\n"),
+    note: "Exact wording may vary by configuration."
+  },
+  lg: {
+    whatLabel: "LG",
+    what: [
+      "Pre-dosing [strokes]: amount added before cycle dosing. (Pending confirmation on best-use.)",
+      "Post dosing start delay [s]: delay before post dosing begins. (Pending confirmation.)",
+      "Maximum post dosing [strokes]: maximum allowed post dosing amount. (Pending confirmation.)",
+      "Post dosing [strokes]: amount added after main dosing (if used). (Pending confirmation.)"
+    ].join("\n"),
+    note: "Operator practice varies by job. Confirmed screen; usage details pending."
   }
 };
 
 // ===== BASIC PAGES (placeholders) =====
 const CONTENT = {
   basics: {
-    title: "Operation",
+    title: "Machine Operation",
     subtitle: "Start • Run • Shutdown",
     blocks: [
       { h: "Startup (placeholder)", p: "We will write this section next, one step at a time.", type: "tip" },
@@ -216,29 +214,36 @@ const CONTENT = {
     ]
   },
   loadbox: {
-    title: "Load Box",
-    subtitle: "Changeover / corebox setup",
+    title: "Corebox Setup",
+    subtitle: "Changeover & configuration",
     blocks: [
-      { h: "Placeholder", p: "We will build Load Box steps after Screens are locked.", type: "tip" }
+      { h: "Placeholder", p: "We will build Corebox Setup steps after Screens + Checklists are locked.", type: "tip" }
     ]
   },
   troubleshoot: {
-    title: "Fix It",
-    subtitle: "Symptom → check first",
+    title: "Troubleshooting",
+    subtitle: "Symptoms → check first",
     blocks: [
       { h: "Placeholder", p: "We will build troubleshooting steps later.", type: "warn" }
     ]
   },
   safety: {
-    title: "Safety",
-    subtitle: "Emergency only",
+    title: "Emergency & Safety",
+    subtitle: "Critical procedures only",
     blocks: [
       { h: "Placeholder", p: "We will build emergency-only content later.", type: "warn" }
+    ]
+  },
+  feedback: {
+    title: "Operator Feedback",
+    subtitle: "Submit improvement input",
+    blocks: [
+      { h: "Submit feedback", p: "Use the button below to submit corrections, missing steps, or suggestions.", type: "tip" }
     ]
   }
 };
 
-// ===== CHECKLISTS (no saving) =====
+// ===== CHECKLISTS =====
 const CHECKLISTS = {
   start: {
     title: "Start of Shift",
@@ -322,67 +327,56 @@ const CHECKLISTS = {
 let currentView = "home"; // home | screens-list | gassing-params | machine-params | mixer-list | checklist-list | checklist-detail | content | search
 
 // ===== HELPERS =====
-function setDockActive(key) {
-  document.querySelectorAll(".dockBtn").forEach((btn) => {
+function setDockActive(key){
+  document.querySelectorAll(".dockBtn").forEach(btn=>{
     btn.classList.toggle("is-active", btn.dataset.dock === key);
   });
 }
 
-function setSheetText({ title, what, increase, decrease, note }) {
-  sheetTitle.textContent = title || "SCREEN";
-  sheetWhat.textContent = what || "—";
-  sheetIncrease.textContent = increase || "—";
-  sheetDecrease.textContent = decrease || "—";
+function showBottomSheet(payload){
+  // payload: { title, whatLabel, what, increase?, decrease?, note? }
+  sheetTitle.textContent = payload.title || "SETTINGS";
+  sheetLabelWhat.textContent = payload.whatLabel ? payload.whatLabel.toUpperCase() : "WHAT IT DOES";
 
-  if (note) {
-    sheetNote.textContent = note;
+  sheetWhat.textContent = payload.what || "—";
+
+  const hasEffects = Boolean(payload.increase || payload.decrease);
+  if (hasEffects){
+    sheetIncrease.textContent = payload.increase || "—";
+    sheetDecrease.textContent = payload.decrease || "—";
+    effectRow.style.display = "flex";
+    sheetDivider.style.display = "block";
+  } else {
+    effectRow.style.display = "none";
+    sheetDivider.style.display = "none";
+  }
+
+  if (payload.note){
+    sheetNote.textContent = payload.note;
     sheetNoteContainer.style.display = "block";
   } else {
     sheetNoteContainer.style.display = "none";
   }
 
   sheetOverlay.classList.add("active");
-  bottomSheet.classList.add("active");
+  requestAnimationFrame(() => bottomSheet.classList.add("active"));
 }
 
-function showParamSheet(modeTitle, param) {
-  // Title rule:
-  // - GASSING / MACHINE param sheets are SETTINGS (and show param name too)
-  setSheetText({
-    title: `${modeTitle}: ${param.name || "Setting"}`,
-    what: param.what || "—",
-    increase: param.increase || "—",
-    decrease: param.decrease || "—",
-    note: param.note || "",
-  });
-}
-
-function showScreenSheet(screenName, sheet) {
-  // Title rule:
-  // - PNEU/SAND/LG are SCREEN sheets
-  setSheetText({
-    title: `SCREEN: ${screenName}`,
-    what: sheet.what || "—",
-    increase: sheet.increase || "—",
-    decrease: sheet.decrease || "—",
-    note: sheet.note || "",
-  });
-}
-
-function hideParameterSheet() {
+function hideParameterSheet(){
   sheetOverlay.classList.remove("active");
   bottomSheet.classList.remove("active");
 }
 
-// ===== RENDER: Screens list (HMI tabs) =====
-function renderScreensList() {
+// ===== RENDER: Screens list =====
+function renderScreensList(){
   return `
     <div class="screens-list">
+
       <div class="screen-item" data-screen="pneu">
-        <div class="screen-icon">🫁</div>
+        <div class="screen-icon">💨</div>
         <div class="screen-info">
           <div class="screen-name">PNEU</div>
-          <div class="screen-desc">Sensors 41/51/61 + Air Reset</div>
+          <div class="screen-desc">Sensors + Reset Air</div>
         </div>
         <div class="screen-arrow">→</div>
       </div>
@@ -390,7 +384,7 @@ function renderScreensList() {
       <div class="screen-item" data-screen="gassingParams">
         <div class="screen-icon">⚡</div>
         <div class="screen-info">
-          <div class="screen-name">Gassing</div>
+          <div class="screen-name">Gassing parameters</div>
           <div class="screen-desc">Cure pressure/time, exhaust, preheat</div>
         </div>
         <div class="screen-arrow">→</div>
@@ -399,8 +393,8 @@ function renderScreensList() {
       <div class="screen-item" data-screen="machine">
         <div class="screen-icon">🛠️</div>
         <div class="screen-info">
-          <div class="screen-name">Machine</div>
-          <div class="screen-desc">Machine settings (grid)</div>
+          <div class="screen-name">Machine shot parameters</div>
+          <div class="screen-desc">Shots, pressure/time, exhaust, sand refill</div>
         </div>
         <div class="screen-arrow">→</div>
       </div>
@@ -408,8 +402,8 @@ function renderScreensList() {
       <div class="screen-item" data-screen="sand">
         <div class="screen-icon">🏖️</div>
         <div class="screen-info">
-          <div class="screen-name">Sand</div>
-          <div class="screen-desc">Sand Demand + Release + Mixer State</div>
+          <div class="screen-name">SAND</div>
+          <div class="screen-desc">Demand / Release + state</div>
         </div>
         <div class="screen-arrow">→</div>
       </div>
@@ -418,34 +412,31 @@ function renderScreensList() {
         <div class="screen-icon">🧪</div>
         <div class="screen-info">
           <div class="screen-name">LG</div>
-          <div class="screen-desc">Predose + Post Dose</div>
+          <div class="screen-desc">Pre-dose / Post-dose parameters</div>
         </div>
         <div class="screen-arrow">→</div>
       </div>
+
     </div>
   `;
 }
 
-// ===== RENDER: Gassing params (grid) =====
-function renderGassingParams() {
+// ===== RENDER: Gassing params =====
+function renderGassingParams(){
   return `
     <div class="screen-header">
-      <div class="screen-header-title">GASSING</div>
+      <div class="screen-header-title">GASSING PARAMETERS</div>
     </div>
 
     <div class="hmi-container">
       <div class="simulated-hmi">
         <div class="hmi-param-grid">
-          ${Object.entries(GASSING_PARAMS)
-            .map(
-              ([key, p]) => `
+          ${Object.entries(GASSING_PARAMS).map(([key,p])=>`
             <div class="hmi-param" data-param="${key}">
               <span class="param-name">${p.name}</span>
               <span class="tap-indicator"></span>
             </div>
-          `
-            )
-            .join("")}
+          `).join("")}
         </div>
       </div>
     </div>
@@ -453,32 +444,28 @@ function renderGassingParams() {
     <div class="stack">
       <div class="card card--tip">
         <h3>SETTINGS</h3>
-        <p>Tap a setting to see what it does and what happens if you increase/decrease it.</p>
+        <p>Tap a parameter to view what it does. If anything looks wrong, submit corrections via Feedback.</p>
       </div>
     </div>
   `;
 }
 
-// ===== RENDER: Machine params (grid, placeholders for now) =====
-function renderMachineParams() {
+// ===== RENDER: Machine params =====
+function renderMachineParams(){
   return `
     <div class="screen-header">
-      <div class="screen-header-title">MACHINE</div>
+      <div class="screen-header-title">MACHINE SHOT PARAMETERS</div>
     </div>
 
     <div class="hmi-container">
       <div class="simulated-hmi">
         <div class="hmi-param-grid">
-          ${Object.entries(MACHINE_PARAMS)
-            .map(
-              ([key, p]) => `
+          ${Object.entries(MACHINE_PARAMS).map(([key,p])=>`
             <div class="hmi-param" data-machine-param="${key}">
               <span class="param-name">${p.name}</span>
               <span class="tap-indicator"></span>
             </div>
-          `
-            )
-            .join("")}
+          `).join("")}
         </div>
       </div>
     </div>
@@ -486,21 +473,21 @@ function renderMachineParams() {
     <div class="stack">
       <div class="card card--tip">
         <h3>SETTINGS</h3>
-        <p>Tap a setting to see what it does. (Placeholders until we add real Machine items.)</p>
+        <p>Tap a parameter to view what it does. If anything looks wrong, submit corrections via Feedback.</p>
       </div>
     </div>
   `;
 }
 
-// ===== MIXER MODULE (runs like Screens; placeholders for now) =====
-function renderMixerList() {
+// ===== MIXER MODULE (placeholder list) =====
+function renderMixerList(){
   return `
     <div class="screens-list">
       <div class="screen-item" data-mixer="overview">
         <div class="screen-icon">🌀</div>
         <div class="screen-info">
           <div class="screen-name">Mixer Overview</div>
-          <div class="screen-desc">What this page is for (placeholder)</div>
+          <div class="screen-desc">Purpose and workflow (placeholder)</div>
         </div>
         <div class="screen-arrow">→</div>
       </div>
@@ -536,8 +523,8 @@ function renderMixerList() {
 }
 
 // ===== RENDER: Checklist list =====
-function renderChecklistList() {
-  detailTitle.textContent = "Checklists";
+function renderChecklistList(){
+  detailTitle.textContent = "Shift Checklists";
   detailSub.textContent = "Tap to open step-by-step";
   dynamicContent.innerHTML = `
     <div class="screens-list">
@@ -563,7 +550,7 @@ function renderChecklistList() {
 }
 
 // ===== RENDER: Checklist detail =====
-function renderChecklistDetail(which) {
+function renderChecklistDetail(which){
   const page = CHECKLISTS[which];
   if (!page) return;
 
@@ -573,63 +560,67 @@ function renderChecklistDetail(which) {
   let n = 1;
   dynamicContent.innerHTML = `
     <div class="stack">
-      ${page.sections
-        .map(
-          (sec) => `
+      ${page.sections.map(sec=>`
         <div class="card">
           <div class="sectionLabel">${sec.label}</div>
           <div class="stepsWrap">
-            ${sec.steps
-              .map(
-                (step) => `
+            ${sec.steps.map(step=>`
               <div class="stepRow">
                 <div class="stepNum">${n++}</div>
                 <div class="stepText">${step}</div>
               </div>
-            `
-              )
-              .join("")}
+            `).join("")}
           </div>
         </div>
-      `
-        )
-        .join("")}
+      `).join("")}
     </div>
   `;
 }
 
-// ===== RENDER: Basic content pages =====
-function renderContentPage(key) {
+// ===== RENDER: Content pages =====
+function renderContentPage(key){
   const page = CONTENT[key];
   if (!page) return;
 
   detailTitle.textContent = page.title;
   detailSub.textContent = page.subtitle;
 
+  if (key === "feedback"){
+    dynamicContent.innerHTML = `
+      <div class="stack">
+        <div class="card card--tip">
+          <h3>Submit feedback</h3>
+          <p>Use the button below to submit corrections, missing steps, or suggestions.</p>
+        </div>
+
+        <button class="tile tile--blue" id="openFeedback" type="button" style="min-height:110px;width:100%;">
+          <div class="tile__icon">📝</div>
+          <div class="tile__title">Open Feedback Form</div>
+          <div class="tile__sub">Google Form (external link)</div>
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   dynamicContent.innerHTML = `
     <div class="stack">
-      ${page.blocks
-        .map((b) => {
-          const klass =
-            b.type === "warn"
-              ? "card card--warn"
-              : b.type === "tip"
-              ? "card card--tip"
-              : "card";
-          return `
+      ${page.blocks.map(b=>{
+        const klass = b.type === "warn" ? "card card--warn" :
+                      b.type === "tip" ? "card card--tip" : "card";
+        return `
           <div class="${klass}">
             <h3>${b.h}</h3>
             <p>${b.p}</p>
           </div>
         `;
-        })
-        .join("")}
+      }).join("")}
     </div>
   `;
 }
 
 // ===== NAVIGATION =====
-function showHome() {
+function showHome(){
   homeView.hidden = false;
   detailView.hidden = true;
   searchView.hidden = true;
@@ -639,9 +630,9 @@ function showHome() {
   currentView = "home";
 }
 
-function showScreensList() {
-  detailTitle.textContent = "Machine Screens";
-  detailSub.textContent = "Match the HMI tabs";
+function showScreensList(){
+  detailTitle.textContent = "Control Screens";
+  detailSub.textContent = "Parameter & status reference";
   dynamicContent.innerHTML = renderScreensList();
 
   homeView.hidden = true;
@@ -653,9 +644,9 @@ function showScreensList() {
   currentView = "screens-list";
 }
 
-function showGassingParams() {
-  detailTitle.textContent = "Machine Screens";
-  detailSub.textContent = "Gassing";
+function showGassingParams(){
+  detailTitle.textContent = "Control Screens";
+  detailSub.textContent = "Gassing parameters";
   dynamicContent.innerHTML = renderGassingParams();
 
   homeView.hidden = true;
@@ -667,9 +658,9 @@ function showGassingParams() {
   currentView = "gassing-params";
 }
 
-function showMachineParams() {
-  detailTitle.textContent = "Machine Screens";
-  detailSub.textContent = "Machine";
+function showMachineParams(){
+  detailTitle.textContent = "Control Screens";
+  detailSub.textContent = "Machine shot parameters";
   dynamicContent.innerHTML = renderMachineParams();
 
   homeView.hidden = true;
@@ -681,9 +672,9 @@ function showMachineParams() {
   currentView = "machine-params";
 }
 
-function showMixerList() {
-  detailTitle.textContent = "Mixer";
-  detailSub.textContent = "Screens and checks (placeholders)";
+function showMixerList(){
+  detailTitle.textContent = "Sand Mixer";
+  detailSub.textContent = "Mixer settings & checks (placeholders)";
   dynamicContent.innerHTML = renderMixerList();
 
   homeView.hidden = true;
@@ -695,8 +686,8 @@ function showMixerList() {
   currentView = "mixer-list";
 }
 
-function showMixerPlaceholder(label, id) {
-  detailTitle.textContent = "Mixer";
+function showMixerPlaceholder(label, id){
+  detailTitle.textContent = "Sand Mixer";
   detailSub.textContent = label;
   dynamicContent.innerHTML = `
     <div class="stack">
@@ -706,7 +697,6 @@ function showMixerPlaceholder(label, id) {
       </div>
     </div>
   `;
-
   homeView.hidden = true;
   detailView.hidden = false;
   searchView.hidden = true;
@@ -716,29 +706,29 @@ function showMixerPlaceholder(label, id) {
   currentView = "content";
 }
 
-function showChecklistsList() {
+function showChecklistsList(){
   homeView.hidden = true;
   detailView.hidden = false;
   searchView.hidden = true;
-  setDockActive(""); // not on dock
+  setDockActive("");
   window.location.hash = "checklists";
   hideParameterSheet();
   renderChecklistList();
   currentView = "checklist-list";
 }
 
-function showChecklistDetail(which) {
+function showChecklistDetail(which){
   homeView.hidden = true;
   detailView.hidden = false;
   searchView.hidden = true;
-  setDockActive(""); // not on dock
+  setDockActive("");
   window.location.hash = `checklists/${which}`;
   hideParameterSheet();
   renderChecklistDetail(which);
   currentView = "checklist-detail";
 }
 
-function showDetail(key) {
+function showDetail(key){
   if (key === "screens") return showScreensList();
   if (key === "mixer") return showMixerList();
   if (key === "checklists") return showChecklistsList();
@@ -746,6 +736,7 @@ function showDetail(key) {
   homeView.hidden = true;
   detailView.hidden = false;
   searchView.hidden = true;
+
   setDockActive(key === "troubleshoot" ? "troubleshoot" : "");
   window.location.hash = key;
 
@@ -754,7 +745,7 @@ function showDetail(key) {
   currentView = "content";
 }
 
-function showSearch() {
+function showSearch(){
   homeView.hidden = true;
   detailView.hidden = true;
   searchView.hidden = false;
@@ -762,178 +753,160 @@ function showSearch() {
   searchInput.value = "";
   searchResults.innerHTML = "";
   window.location.hash = "search";
-  setTimeout(() => searchInput.focus(), 50);
+  setTimeout(()=>searchInput.focus(), 50);
   hideParameterSheet();
   currentView = "search";
 }
 
 // ===== SEARCH =====
-function highlightText(text, term) {
+function highlightText(text, term){
   if (!term || !text) return text;
-  const regex = new RegExp(
-    `(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-    "gi"
-  );
-  return String(text).replace(regex, "<mark>$1</mark>");
+  const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return String(text).replace(regex, '<mark>$1</mark>');
 }
 
 let searchTimeout;
-function runSearch(q) {
+function runSearch(q){
   const term = q.trim().toLowerCase();
-  if (!term) {
-    searchResults.innerHTML = "";
-    return;
-  }
+  if (!term){ searchResults.innerHTML = ""; return; }
 
   const hits = [];
 
   // CONTENT
-  Object.entries(CONTENT).forEach(([key, page]) => {
-    const hay = (
-      page.title +
-      " " +
-      page.subtitle +
-      " " +
-      page.blocks.map((b) => b.h + " " + b.p).join(" ")
-    ).toLowerCase();
-    if (hay.includes(term))
-      hits.push({ type: "page", key, title: page.title, sub: page.subtitle });
+  Object.entries(CONTENT).forEach(([key,page])=>{
+    const hay = (page.title+" "+page.subtitle+" "+(page.blocks||[]).map(b=>b.h+" "+b.p).join(" ")).toLowerCase();
+    if (hay.includes(term)) hits.push({type:"page", key, title:page.title, sub:page.subtitle});
   });
 
   // CHECKLISTS
-  Object.entries(CHECKLISTS).forEach(([key, page]) => {
-    const hay = (
-      page.title +
-      " " +
-      page.subtitle +
-      " " +
-      page.sections
-        .map((s) => s.label + " " + s.steps.join(" "))
-        .join(" ")
-    ).toLowerCase();
-    if (hay.includes(term))
-      hits.push({
-        type: "checklist",
-        key,
-        title: page.title,
-        sub: page.subtitle,
-      });
+  Object.entries(CHECKLISTS).forEach(([key,page])=>{
+    const hay = (page.title+" "+page.subtitle+" "+page.sections.map(s=>s.label+" "+s.steps.join(" ")).join(" ")).toLowerCase();
+    if (hay.includes(term)) hits.push({type:"checklist", key, title:page.title, sub:page.subtitle});
   });
 
-  // Mixer + Screens (broad)
-  const screenHay = "screens pneu gassing machine sand lg sensors air reset predose post dose";
-  if (screenHay.includes(term))
-    hits.push({ type: "route", key: "screens", title: "Screens", sub: "Machine screens list" });
+  // Screens keywords
+  const screenHay = "screens gassing machine shots pressure time exhaust sand lg pneu vacuum air";
+  if (screenHay.includes(term)) hits.push({type:"route", key:"screens", title:"Control Screens", sub:"Parameter & status reference"});
 
   const mixerHay = "mixer mixing sand binder ratio checks cleaning";
-  if (mixerHay.includes(term))
-    hits.push({ type: "route", key: "mixer", title: "Mixer", sub: "Mixer module (placeholders)" });
+  if (mixerHay.includes(term)) hits.push({type:"route", key:"mixer", title:"Sand Mixer", sub:"Mixer module (placeholders)"});
 
-  if (hits.length === 0) {
+  if (hits.length === 0){
     searchResults.innerHTML = `
       <div class="card">
         <h3>🔍 No results found</h3>
-        <p>Try "vacuum", "gassing", "pneu", "sand", "lg", "mixer", or "shift".</p>
+        <p>Try "vacuum", "clamp", "gassing", "shots", "exhaust", "shift".</p>
       </div>
     `;
     return;
   }
 
-  searchResults.innerHTML = hits
-    .map((hit) => {
-      const route =
-        hit.type === "page"
-          ? hit.key
-          : hit.type === "checklist"
-          ? `checklists/${hit.key}`
-          : hit.key;
+  searchResults.innerHTML = hits.map(hit=>{
+    const route =
+      hit.type === "page" ? hit.key :
+      hit.type === "checklist" ? `checklists/${hit.key}` :
+      hit.key;
 
-      return `
+    return `
       <button class="tile tile--blue" data-route="${route}" type="button" style="min-height:110px;width:100%;">
         <div class="tile__icon">🔎</div>
         <div class="tile__title">${highlightText(hit.title, term)}</div>
         <div class="tile__sub">${highlightText(hit.sub, term)}</div>
       </button>
     `;
-    })
-    .join("");
+  }).join("");
 }
 
 // ===== EVENTS =====
-document.addEventListener("click", (e) => {
+document.addEventListener("click", (e)=>{
+
+  // Feedback open button
+  const fb = e.target.closest("#openFeedback");
+  if (fb){
+    window.open(FEEDBACK_URL, "_blank", "noopener,noreferrer");
+    return;
+  }
+
   // Screens items
   const screenItem = e.target.closest("[data-screen]");
-  if (screenItem) {
+  if (screenItem){
     const screenId = screenItem.dataset.screen;
 
-    // Single-sheet screens
-    if (screenId === "pneu") {
-      showScreenSheet("PNEU", PNEU_SHEET);
-      return;
-    }
-    if (screenId === "sand") {
-      showScreenSheet("SAND", SAND_SHEET);
-      return;
-    }
-    if (screenId === "lg") {
-      showScreenSheet("LG", LG_SHEET);
-      return;
-    }
+    if (screenId === "gassingParams"){ showGassingParams(); return; }
+    if (screenId === "machine"){ showMachineParams(); return; }
 
-    // Grid screens
-    if (screenId === "gassingParams") {
-      showGassingParams();
+    // bottom-sheet only screens
+    if (screenId === "pneu" || screenId === "sand" || screenId === "lg"){
+      const payload = SCREEN_SHEETS[screenId];
+      showBottomSheet({
+        title: "SCREENS",
+        whatLabel: payload.whatLabel,
+        what: payload.what,
+        note: payload.note
+      });
       return;
     }
-    if (screenId === "machine") {
-      showMachineParams();
-      return;
-    }
-
     return;
   }
 
   // Mixer items
   const mixerItem = e.target.closest("[data-mixer]");
-  if (mixerItem) {
+  if (mixerItem){
     const id = mixerItem.dataset.mixer;
-    const label =
-      mixerItem.querySelector(".screen-name")?.textContent || "Mixer";
+    const label = mixerItem.querySelector(".screen-name")?.textContent || "Mixer";
     showMixerPlaceholder(label, id);
     return;
   }
 
   // Param taps (gassing)
   const gasParam = e.target.closest("[data-param]");
-  if (gasParam) {
+  if (gasParam){
     const key = gasParam.dataset.param;
     const param = GASSING_PARAMS[key];
-    if (param) showParamSheet("SETTINGS", param);
+    if (param){
+      showBottomSheet({
+        title: "SETTINGS",
+        whatLabel: param.name,
+        what: param.what,
+        increase: param.increase,
+        decrease: param.decrease,
+        note: param.note
+      });
+    }
     return;
   }
 
   // Param taps (machine)
   const machParam = e.target.closest("[data-machine-param]");
-  if (machParam) {
+  if (machParam){
     const key = machParam.dataset.machineParam;
     const param = MACHINE_PARAMS[key];
-    if (param) showParamSheet("SETTINGS", param);
+    if (param){
+      showBottomSheet({
+        title: "SETTINGS",
+        whatLabel: param.name,
+        what: param.what,
+        increase: param.increase,
+        decrease: param.decrease,
+        note: param.note
+      });
+    }
     return;
   }
 
   // Checklist list taps
   const checklistItem = e.target.closest("[data-checklist]");
-  if (checklistItem) {
+  if (checklistItem){
     showChecklistDetail(checklistItem.dataset.checklist);
     return;
   }
 
   // Tiles (home + search results)
   const tile = e.target.closest("[data-route]");
-  if (tile) {
+  if (tile){
     const route = tile.dataset.route;
 
-    if (route.startsWith("checklists/")) {
+    if (route.startsWith("checklists/")){
       const which = route.split("/")[1];
       showChecklistDetail(which);
       return;
@@ -945,7 +918,7 @@ document.addEventListener("click", (e) => {
 
   // Dock
   const dock = e.target.closest("[data-dock]");
-  if (dock) {
+  if (dock){
     const key = dock.dataset.dock;
     if (key === "home") showHome();
     else if (key === "screens") showScreensList();
@@ -958,23 +931,19 @@ document.addEventListener("click", (e) => {
 // Close sheet
 sheetOverlay.addEventListener("click", hideParameterSheet);
 
-// Back button behavior
-backBtn.addEventListener("click", () => {
-  if (currentView === "gassing-params" || currentView === "machine-params") {
-    showScreensList();
-    return;
+// Back behavior
+backBtn.addEventListener("click", ()=>{
+  if (currentView === "gassing-params" || currentView === "machine-params"){
+    showScreensList(); return;
   }
-  if (currentView === "mixer-list" || window.location.hash.startsWith("#mixer/")) {
-    showMixerList();
-    return;
+  if (currentView === "mixer-list" || window.location.hash.startsWith("#mixer/")){
+    showMixerList(); return;
   }
-  if (currentView === "checklist-detail") {
-    showChecklistsList();
-    return;
+  if (currentView === "checklist-detail"){
+    showChecklistsList(); return;
   }
-  if (currentView !== "home") {
-    showHome();
-    return;
+  if (currentView !== "home"){
+    showHome(); return;
   }
   showHome();
 });
@@ -984,21 +953,20 @@ openSearch.addEventListener("click", showSearch);
 closeSearch.addEventListener("click", showHome);
 
 // Search debounce
-searchInput.addEventListener("input", (e) => {
+searchInput.addEventListener("input", (e)=>{
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => runSearch(e.target.value), 200);
+  searchTimeout = setTimeout(()=>runSearch(e.target.value), 200);
 });
 
 // Keyboard
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
+document.addEventListener("keydown", (e)=>{
+  if (e.key === "Escape"){
     if (bottomSheet.classList.contains("active")) hideParameterSheet();
-    else if (currentView === "gassing-params" || currentView === "machine-params")
-      showScreensList();
+    else if (currentView === "gassing-params" || currentView === "machine-params") showScreensList();
     else if (currentView === "checklist-detail") showChecklistsList();
     else showHome();
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+  if ((e.ctrlKey || e.metaKey) && e.key === "k"){
     e.preventDefault();
     showSearch();
   }
@@ -1006,37 +974,25 @@ document.addEventListener("keydown", (e) => {
 
 // Swipe-to-close sheet
 let touchStartY = 0;
-bottomSheet.addEventListener(
-  "touchstart",
-  (e) => {
-    touchStartY = e.touches[0].clientY;
-  },
-  { passive: true }
-);
+bottomSheet.addEventListener("touchstart", (e)=>{
+  touchStartY = e.touches[0].clientY;
+},{passive:true});
 
-bottomSheet.addEventListener(
-  "touchmove",
-  (e) => {
-    const touchY = e.touches[0].clientY;
-    const diff = touchY - touchStartY;
-    if (diff > 0) {
-      e.preventDefault();
-      bottomSheet.style.transform = `translateY(${diff}px)`;
-    }
-  },
-  { passive: false }
-);
+bottomSheet.addEventListener("touchmove", (e)=>{
+  const touchY = e.touches[0].clientY;
+  const diff = touchY - touchStartY;
+  if (diff > 0){
+    e.preventDefault();
+    bottomSheet.style.transform = `translateY(${diff}px)`;
+  }
+},{passive:false});
 
-bottomSheet.addEventListener(
-  "touchend",
-  (e) => {
-    const touchY = e.changedTouches[0].clientY;
-    const diff = touchY - touchStartY;
-    bottomSheet.style.transform = "";
-    if (diff > 100) hideParameterSheet();
-  },
-  { passive: true }
-);
+bottomSheet.addEventListener("touchend", (e)=>{
+  const touchY = e.changedTouches[0].clientY;
+  const diff = touchY - touchStartY;
+  bottomSheet.style.transform = "";
+  if (diff > 100) hideParameterSheet();
+},{passive:true});
 
 // Init
 showHome();
