@@ -4,29 +4,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Laempe Reference Guide • Machine 113715-03</title>
+  <title>Laempe Reference Guide • Touch Panel Training Reference</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
+
 <body>
   <div class="app" id="app">
+
+    <!-- Topbar -->
     <header class="topbar">
       <div class="brand">
         <div class="brand__title">Laempe Reference Guide</div>
-        <div class="brand__subtitle">Machine 113715-03 • Touch Panel • Version 0.1 – Pilot Draft</div>
+        <div class="brand__subtitle">Touch Panel Training Reference • Version 0.1 (Pilot)</div>
       </div>
       <button class="iconBtn" id="openSearch" type="button" aria-label="Search">🔎</button>
     </header>
 
+    <!-- Main -->
     <main class="main">
+
       <!-- HOME -->
       <section id="homeView" class="view view--home" role="region" aria-labelledby="home-heading">
-        <h1 id="home-heading" class="visually-hidden">Home - Laempe Reference Guide</h1>
+        <h1 id="home-heading" class="visually-hidden">Home</h1>
 
         <div class="hero">
           <div class="hero__left">
             <div class="hero__tag">REFERENCE TOOL</div>
-            <div class="hero__title">Tap a module.</div>
-            <div class="hero__sub">Big tiles • Fast answers • Built for the floor</div>
+            <div class="hero__title">Operational Reference Modules</div>
+            <div class="hero__sub">Structured guidance for operators and trainers.</div>
           </div>
           <div class="hero__right">
             <div class="heroPill">Offline Ready</div>
@@ -37,52 +42,50 @@
         <div class="tiles2">
           <button class="tile tile--blue" data-route="basics" type="button">
             <div class="tile__icon">⚙️</div>
-            <div class="tile__title">Operation</div>
+            <div class="tile__title">Machine Operation</div>
             <div class="tile__sub">Start • Run • Shutdown</div>
           </button>
 
           <button class="tile tile--violet" data-route="screens" type="button">
             <div class="tile__icon">🖥️</div>
-            <div class="tile__title">Screens</div>
-            <div class="tile__sub">What each page means</div>
+            <div class="tile__title">Control Screens</div>
+            <div class="tile__sub">Parameter & status reference</div>
           </button>
 
           <button class="tile tile--teal" data-route="mixer" type="button">
             <div class="tile__icon">🌀</div>
-            <div class="tile__title">Mixer</div>
-            <div class="tile__sub">Mixer screens + checks</div>
+            <div class="tile__title">Sand Mixer</div>
+            <div class="tile__sub">Mixer settings & checks</div>
           </button>
 
           <button class="tile tile--amber" data-route="loadbox" type="button">
             <div class="tile__icon">🧩</div>
-            <div class="tile__title">Load Box</div>
-            <div class="tile__sub">Changeover / setup</div>
+            <div class="tile__title">Corebox Setup</div>
+            <div class="tile__sub">Changeover & configuration</div>
           </button>
 
           <button class="tile tile--orange" data-route="troubleshoot" type="button">
             <div class="tile__icon">🧰</div>
-            <div class="tile__title">Fix It</div>
+            <div class="tile__title">Troubleshooting</div>
             <div class="tile__sub">Symptoms → checks</div>
           </button>
 
           <button class="tile tile--green" data-route="checklists" type="button">
             <div class="tile__icon">📋</div>
-            <div class="tile__title">Checklists</div>
-            <div class="tile__sub">Start / End of shift</div>
+            <div class="tile__title">Shift Checklists</div>
+            <div class="tile__sub">Start & end of shift</div>
           </button>
 
           <button class="tile tile--red" data-route="safety" type="button">
             <div class="tile__icon">⚠️</div>
-            <div class="tile__title">Safety</div>
-            <div class="tile__sub">Emergency only</div>
+            <div class="tile__title">Emergency & Safety</div>
+            <div class="tile__sub">Critical procedures only</div>
           </button>
 
-          <!-- Feedback (Tile style to match UI) -->
-          <button class="tile tile--blue" type="button"
-            onclick="window.open('https://forms.gle/pqN3hXHVx9Ewj5uaA', '_blank')">
+          <button class="tile tile--blue" data-route="feedback" type="button">
             <div class="tile__icon">📝</div>
-            <div class="tile__title">Feedback</div>
-            <div class="tile__sub">Submit operator input</div>
+            <div class="tile__title">Operator Feedback</div>
+            <div class="tile__sub">Submit improvement input</div>
           </button>
         </div>
       </section>
@@ -106,13 +109,13 @@
           <button class="iconBtn" id="closeSearch" type="button" aria-label="Back">←</button>
           <div class="detailMeta">
             <div class="detailTitle" id="search-heading">Search</div>
-            <div class="detailSub">Try: vacuum, clamp, gassing, machine, shift, mixer</div>
+            <div class="detailSub">Try: vacuum, clamp, gassing, shots, exhaust, shift</div>
           </div>
         </div>
 
         <div class="stack">
           <div class="searchBar">
-            <label for="searchInput" class="visually-hidden">Search documentation</label>
+            <label for="searchInput" class="visually-hidden">Search</label>
             <input
               id="searchInput"
               type="search"
@@ -126,10 +129,13 @@
       </section>
     </main>
 
-    <!-- Subtle Footer -->
-    <div class="app-footer">Prototype built independently by R. Young – Reference tool only.</div>
+    <!-- Footer / Disclaimer -->
+    <div class="app-footer">
+      Pilot Prototype – Reference Tool (v0.1) • Independent training reference. Not affiliated with machine manufacturer.
+      Does not interface with the machine or replicate proprietary control software.
+    </div>
 
-    <!-- Dock (NO “List” button; added Mixer) -->
+    <!-- Dock -->
     <nav class="dock" aria-label="Navigation">
       <button class="dockBtn is-active" data-dock="home" type="button">
         <div class="dockBtn__icon">🏠</div><div class="dockBtn__label">Home</div>
@@ -145,20 +151,22 @@
       </button>
     </nav>
 
-    <!-- Bottom Sheet (used by Screens: Gassing + Machine) -->
+    <!-- Bottom Sheet -->
     <div class="sheet-overlay" id="sheetOverlay"></div>
+
     <div class="bottom-sheet" id="bottomSheet">
       <div class="sheet-handle"></div>
-      <div class="sheet-title" id="sheetTitle">Parameter</div>
+
+      <div class="sheet-title" id="sheetTitle">SETTINGS</div>
 
       <div class="sheet-section">
-        <div class="sheet-label">WHAT IT DOES</div>
+        <div class="sheet-label" id="sheetLabelWhat">WHAT IT DOES</div>
         <div class="sheet-content" id="sheetWhat">—</div>
       </div>
 
-      <div class="sheet-divider"></div>
+      <div class="sheet-divider" id="sheetDivider"></div>
 
-      <div class="effect-row">
+      <div class="effect-row" id="effectRow">
         <div class="effect-box increase">
           <div class="effect-arrow">↑</div>
           <div class="effect-label">Increasing it</div>
@@ -176,6 +184,7 @@
         <div class="sheet-content" id="sheetNote"></div>
       </div>
     </div>
+
   </div>
 
   <script src="./app.js"></script>
