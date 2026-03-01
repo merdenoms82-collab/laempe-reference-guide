@@ -2,9 +2,7 @@
 // Laempe Reference Guide v1 — Search + Troubleshooting Upgrade (offline KB)
 // NOTE: Layout/UI is untouched. This file only adds KB content + search behavior + troubleshooting content.
 
-// ==========================================================
 // ===== DOM =====
-// ==========================================================
 const homeView = document.getElementById("homeView");
 const detailView = document.getElementById("detailView");
 const searchView = document.getElementById("searchView");
@@ -33,9 +31,7 @@ const effectRow = document.getElementById("effectRow");
 const sheetDivider = document.getElementById("sheetDivider");
 const sheetLabelWhat = document.getElementById("sheetLabelWhat");
 
-// ==========================================================
 // ===== FEEDBACK LINK =====
-// ==========================================================
 const FEEDBACK_URL =
   "https://docs.google.com/forms/d/1Y8y6EhBOFtrcyOM9H0jcpygWUcnXNGvgO_4v4O_Uj3U/viewform";
 
@@ -43,8 +39,17 @@ const FEEDBACK_FALLBACK_EMAIL =
   "mailto:REPLACE_ME@company.com?subject=Laempe%20Guide%20Feedback";
 
 // ==========================================================
-// ===== SEARCH/KB HELPERS (FIX: required, prevents normalizeText undefined) =====
+// SMALL UTILS (safe, offline)
 // ==========================================================
+function escHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 function normalizeText(s){
   return String(s || "")
     .toLowerCase()
@@ -59,17 +64,20 @@ function tokenize(s){
   return t ? t.split(" ").filter(Boolean) : [];
 }
 
-// Small, offline typo tolerance
-function editDistance(a, b){
-  a = normalizeText(a); b = normalizeText(b);
-  if (!a || !b) return 999;
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-  for (let i=0;i<=m;i++) dp[i][0]=i;
-  for (let j=0;j<=n;j++) dp[0][j]=j;
-  for (let i=1;i<=m;i++){
-    for (let j=1;j<=n;j++){
-      const cost = a[i-1] === b[j-1] ? 0 : 1;
+function editDistance(a,b){
+  a = normalizeText(a);
+  b = normalizeText(b);
+  const al=a.length, bl=b.length;
+  if (!al) return bl;
+  if (!bl) return al;
+
+  const dp = Array.from({length: al+1}, ()=>Array(bl+1).fill(0));
+  for (let i=0;i<=al;i++) dp[i][0]=i;
+  for (let j=0;j<=bl;j++) dp[0][j]=j;
+
+  for (let i=1;i<=al;i++){
+    for (let j=1;j<=bl;j++){
+      const cost = a[i-1]===b[j-1] ? 0 : 1;
       dp[i][j] = Math.min(
         dp[i-1][j] + 1,
         dp[i][j-1] + 1,
@@ -77,18 +85,18 @@ function editDistance(a, b){
       );
     }
   }
-  return dp[m][n];
+  return dp[al][bl];
 }
 
-function tokenOverlapScore(query, text){
+function tokenOverlapScore(query, haystack){
   const q = tokenize(query);
-  const tokens = new Set(tokenize(text));
+  const h = new Set(tokenize(haystack));
   let score = 0;
-
   for (const w of q){
-    if (tokens.has(w)) score += 3;
+    if (h.has(w)) score += 2;
     else {
-      for (const tk of tokens){
+      // prefix match helps "clamp" vs "clamping"
+      for (const tk of h){
         if (tk.startsWith(w) && w.length >= 3){ score += 1; break; }
       }
     }
@@ -96,20 +104,7 @@ function tokenOverlapScore(query, text){
   return score;
 }
 
-// Escape HTML for safety (prevents breaking UI)
-function escHtml(s){
-  return String(s ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#39;");
-}
-
-// ==========================================================
 // ===== PARAM DEFINITIONS =====
-// ==========================================================
-
 // GASSING (mirrors HMI labels + order)
 const GASSING_PARAMS = {
   numGassings: {
@@ -187,7 +182,7 @@ const MACHINE_PARAMS = {
     what: "How many sand blows occur per cycle.",
     increase:
       "Longer cycle; may improve fill on complex shapes (risk: overfill).",
-    decrease: "Shorter cycle; risk of incomplete fill.",
+    decrease: "Shorter cycle; risk: incomplete fill.",
     note: "Pending confirmation: common practice varies by job.",
   },
   shootingPressure: {
@@ -248,9 +243,7 @@ const MACHINE_PARAMS = {
   },
 };
 
-// ==========================================================
 // ===== BOTTOM-SHEET ONLY SCREENS =====
-// ==========================================================
 const SCREEN_SHEETS = {
   pneu: {
     whatLabel: "PNEU",
@@ -285,112 +278,182 @@ const SCREEN_SHEETS = {
   },
 };
 
-// ==========================================================
-// ===== BASIC PAGES (placeholders) =====
-// ==========================================================
+// ===== BASIC PAGES (Corebox Setup updated) =====
 const CONTENT = {
   basics: {
     title: "Machine Operation",
     subtitle: "Start • Run • Shutdown",
     blocks: [
-      { h: "Startup (placeholder)", p: "We will write this section next, one step at a time.", type: "tip" },
-      { h: "Shutdown (placeholder)", p: "We will write this section later, one step at a time." },
+      {
+        h: "Startup (placeholder)",
+        p: "We will write this section next, one step at a time.",
+        type: "tip",
+      },
+      {
+        h: "Shutdown (placeholder)",
+        p: "We will write this section later, one step at a time.",
+      },
     ],
   },
+
   loadbox: {
     title: "Corebox Setup",
-    subtitle: "Changeover & configuration",
+    subtitle: "Automatic load + manual (placeholder)",
     blocks: [
-      { h: "Placeholder", p: "We will build Corebox Setup steps after Screens + Checklists are locked.", type: "tip" },
+      {
+        h: "Automatic Corebox Load (Crane + HMI)",
+        p: [
+          "1) Inspect the crane for wear and verify hooks and chains are in safe working condition.",
+          "2) Lower the crane and attach lifting hooks/chains to the corebox.",
+          "3) CRITICAL: Verify all four transport hooks are engaged (upper half hooked to lower half). These hooks keep both halves together during lifting/transport.",
+          "",
+          "4) Lift slowly. Stay arms-length away and never stand under a suspended load.",
+          "5) Place the corebox onto the carriage with the label marked “FRONT” facing you.",
+          "6) Verify the box is seated level.",
+          "7) Confirm alignment pins are seated in the front and rear of the box.",
+          "",
+          "8) CRITICAL: Remove all four transport hooks AFTER seating the box.",
+          "   - These hooks are for lifting only.",
+          "   - If left installed, the machine can load/clamp and break something.",
+          "",
+          "9) Remove chains and return hoist out of the way.",
+          "",
+          "10) On the HMI screen: tap Database and use the dropdown to select your box.",
+          "11) After selected, hit the Load Corebox button.",
+          "12) Verify on-screen (top left) it shows which box is loaded.",
+          "13) Go to the Mode screen and make sure Clamp is highlighted.",
+          "14) Turn the machine to Auto and hit the Green Start button.",
+          "15) Machine should load the box automatically.",
+        ].join("\n"),
+        type: "tip",
+      },
+      {
+        h: "High-Risk Mistakes",
+        p: [
+          "• Transport hooks left installed (damage risk).",
+          "• Box facing wrong direction (FRONT not facing you).",
+          "• Pins not seated front/rear.",
+          "• Wrong corebox selected in Database.",
+          "• Standing too close during lift.",
+        ].join("\n"),
+        type: "warn",
+      },
+      {
+        h: "Manual Corebox Load (placeholder)",
+        p: "Placeholder. We will add the manual loading method step-by-step next.",
+        type: "tip",
+      },
     ],
   },
+
   troubleshoot: {
     title: "Troubleshooting",
     subtitle: "Symptoms → check first",
     blocks: [
-      { h: "Placeholder", p: "We will build troubleshooting steps later.", type: "warn" },
+      {
+        h: "Placeholder",
+        p: "We will build troubleshooting steps later.",
+        type: "warn",
+      },
     ],
   },
+
   safety: {
     title: "Emergency & Safety",
     subtitle: "Critical procedures only",
-    blocks: [
-      { h: "Placeholder", p: "We will build emergency-only content later.", type: "warn" },
-    ],
+    blocks: [{ h: "Placeholder", p: "We will build emergency-only content later.", type: "warn" }],
   },
+
   feedback: {
     title: "Operator Feedback",
     subtitle: "Submit improvement input",
     blocks: [
-      { h: "Submit feedback", p: "Use the button below to submit corrections, missing steps, or suggestions.", type: "tip" },
+      {
+        h: "Submit feedback",
+        p: "Use the button below to submit corrections, missing steps, or suggestions.",
+        type: "tip",
+      },
     ],
   },
 };
 
-// ==========================================================
 // ===== CHECKLISTS =====
-// ==========================================================
 const CHECKLISTS = {
   start: {
     title: "Start of Shift",
     subtitle: "Do this before starting production",
     sections: [
-      { label: "Job / Plan", steps: [
-        "Verify today’s job and priority on the production board (next to the supervisor’s office).",
-        "Verify the quantity needed for the shift."
-      ]},
-      { label: "Corebox / Cores", steps: [
-        "Verify the correct corebox for the job.",
-        "Verify cores are acceptable quality and match the corebox being run."
-      ]},
-      { label: "Machine / Materials", steps: [
-        "Verify sand supply is adequate for the run.",
-        "Verify machine is ready to run (no active faults, area clear, guards OK)."
-      ]},
-      { label: "Paperwork & Labels", steps: [
-        "Complete the Production Log / Scrap & Downtime sheet.",
-        "Print labels with parts, date, shift, and quantity."
-      ]},
-      { label: "Finish", steps: [
-        "If anything is missing or abnormal, notify supervisor/lead before starting production."
-      ]},
+      {
+        label: "Job / Plan",
+        steps: [
+          "Verify today’s job and priority on the production board (next to the supervisor’s office).",
+          "Verify the quantity needed for the shift.",
+        ],
+      },
+      {
+        label: "Corebox / Cores",
+        steps: [
+          "Verify the correct corebox for the job.",
+          "Verify cores are acceptable quality and match the corebox being run.",
+        ],
+      },
+      {
+        label: "Machine / Materials",
+        steps: [
+          "Verify sand supply is adequate for the run.",
+          "Verify machine is ready to run (no active faults, area clear, guards OK).",
+        ],
+      },
+      {
+        label: "Paperwork & Labels",
+        steps: [
+          "Complete the Production Log / Scrap & Downtime sheet.",
+          "Print labels with parts, date, shift, and quantity.",
+        ],
+      },
+      {
+        label: "Finish",
+        steps: ["If anything is missing or abnormal, notify supervisor/lead before starting production."],
+      },
     ],
   },
   end: {
     title: "End of Shift",
     subtitle: "Closeout steps before leaving",
     sections: [
-      { label: "Production Closeout", steps: [
-        "Verify final quantity produced for the shift.",
-        "Move completed parts to the correct designated area."
-      ]},
-      { label: "Scrap / Documentation", steps: [
-        "Record all scrap and downtime on the Production Log / Scrap & Downtime sheet.",
-        "Verify paperwork is complete and accurate before leaving."
-      ]},
-      { label: "Machine Condition", steps: [
-        "Return machine to start position.",
-        "Clean machine as required (remove sand buildup, wipe surfaces as needed).",
-        "Clean the mixer and return it to start position.",
-        "Empty trash and clear work area around the machine."
-      ]},
-      { label: "Machine State", steps: [
-        "Leave the carriage out.",
-        "Leave the machine in Manual mode."
-      ]},
+      {
+        label: "Production Closeout",
+        steps: ["Verify final quantity produced for the shift.", "Move completed parts to the correct designated area."],
+      },
+      {
+        label: "Scrap / Documentation",
+        steps: [
+          "Record all scrap and downtime on the Production Log / Scrap & Downtime sheet.",
+          "Verify paperwork is complete and accurate before leaving.",
+        ],
+      },
+      {
+        label: "Machine Condition",
+        steps: [
+          "Return machine to start position.",
+          "Clean machine as required (remove sand buildup, wipe surfaces as needed).",
+          "Clean the mixer and return it to start position.",
+          "Empty trash and clear work area around the machine.",
+        ],
+      },
+      {
+        label: "Machine State",
+        steps: ["Leave the carriage out.", "Leave the machine in Manual mode."],
+      },
     ],
   },
 };
 
-// ==========================================================
 // ===== STATE =====
-// ==========================================================
 let currentView =
   "home"; // home | screens-list | gassing-params | machine-params | mixer-list | checklist-list | checklist-detail | content | search | troubleshooting-home | troubleshooting-issue
 
-// ==========================================================
 // ===== HELPERS =====
-// ==========================================================
 function setDockActive(key) {
   document.querySelectorAll(".dockBtn").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.dock === key);
@@ -432,9 +495,7 @@ function hideParameterSheet() {
   bottomSheet.classList.remove("active");
 }
 
-// ==========================================================
 // ===== RENDER: Screens list =====
-// ==========================================================
 function renderScreensList() {
   return `
     <div class="screens-list">
@@ -488,9 +549,7 @@ function renderScreensList() {
   `;
 }
 
-// ==========================================================
 // ===== RENDER: Gassing params =====
-// ==========================================================
 function renderGassingParams() {
   return `
     <div class="screen-header">
@@ -500,12 +559,16 @@ function renderGassingParams() {
     <div class="hmi-container">
       <div class="simulated-hmi">
         <div class="hmi-param-grid">
-          ${Object.entries(GASSING_PARAMS).map(([key,p])=>`
+          ${Object.entries(GASSING_PARAMS)
+            .map(
+              ([key, p]) => `
             <div class="hmi-param" data-param="${key}">
               <span class="param-name">${escHtml(p.name)}</span>
               <span class="tap-indicator"></span>
             </div>
-          `).join("")}
+          `
+            )
+            .join("")}
         </div>
       </div>
     </div>
@@ -519,9 +582,7 @@ function renderGassingParams() {
   `;
 }
 
-// ==========================================================
 // ===== RENDER: Machine params =====
-// ==========================================================
 function renderMachineParams() {
   return `
     <div class="screen-header">
@@ -531,12 +592,16 @@ function renderMachineParams() {
     <div class="hmi-container">
       <div class="simulated-hmi">
         <div class="hmi-param-grid">
-          ${Object.entries(MACHINE_PARAMS).map(([key,p])=>`
+          ${Object.entries(MACHINE_PARAMS)
+            .map(
+              ([key, p]) => `
             <div class="hmi-param" data-machine-param="${key}">
               <span class="param-name">${escHtml(p.name)}</span>
               <span class="tap-indicator"></span>
             </div>
-          `).join("")}
+          `
+            )
+            .join("")}
         </div>
       </div>
     </div>
@@ -550,9 +615,7 @@ function renderMachineParams() {
   `;
 }
 
-// ==========================================================
 // ===== MIXER MODULE (placeholder list) =====
-// ==========================================================
 function renderMixerList() {
   return `
     <div class="screens-list">
@@ -595,9 +658,7 @@ function renderMixerList() {
   `;
 }
 
-// ==========================================================
 // ===== RENDER: Checklist list =====
-// ==========================================================
 function renderChecklistList() {
   detailTitle.textContent = "Shift Checklists";
   detailSub.textContent = "Tap to open step-by-step";
@@ -624,9 +685,7 @@ function renderChecklistList() {
   `;
 }
 
-// ==========================================================
 // ===== RENDER: Checklist detail =====
-// ==========================================================
 function renderChecklistDetail(which) {
   const page = CHECKLISTS[which];
   if (!page) return;
@@ -637,26 +696,32 @@ function renderChecklistDetail(which) {
   let n = 1;
   dynamicContent.innerHTML = `
     <div class="stack">
-      ${page.sections.map(sec=>`
+      ${page.sections
+        .map(
+          (sec) => `
         <div class="card">
           <div class="sectionLabel">${escHtml(sec.label)}</div>
           <div class="stepsWrap">
-            ${sec.steps.map(step=>`
+            ${sec.steps
+              .map(
+                (step) => `
               <div class="stepRow">
                 <div class="stepNum">${n++}</div>
                 <div class="stepText">${escHtml(step)}</div>
               </div>
-            `).join("")}
+            `
+              )
+              .join("")}
           </div>
         </div>
-      `).join("")}
+      `
+        )
+        .join("")}
     </div>
   `;
 }
 
-// ==========================================================
 // ===== RENDER: Content pages =====
-// ==========================================================
 function renderContentPage(key) {
   // Intercept troubleshooting module and render from KB
   if (key === "troubleshoot") {
@@ -690,23 +755,27 @@ function renderContentPage(key) {
 
   dynamicContent.innerHTML = `
     <div class="stack">
-      ${page.blocks.map(b=>{
-        const klass = b.type === "warn" ? "card card--warn" :
-                      b.type === "tip" ? "card card--tip" : "card";
-        return `
+      ${page.blocks
+        .map((b) => {
+          const klass =
+            b.type === "warn"
+              ? "card card--warn"
+              : b.type === "tip"
+              ? "card card--tip"
+              : "card";
+          return `
           <div class="${klass}">
             <h3>${escHtml(b.h)}</h3>
-            <p>${escHtml(b.p)}</p>
+            <p style="white-space:pre-line">${escHtml(b.p)}</p>
           </div>
         `;
-      }).join("")}
+        })
+        .join("")}
     </div>
   `;
 }
 
-// ==========================================================
 // ===== NAVIGATION =====
-// ==========================================================
 function showHome() {
   homeView.hidden = false;
   detailView.hidden = true;
@@ -858,9 +927,7 @@ function showSearch() {
   currentView = "search";
 }
 
-// ==========================================================
-// ===== SEARCH UI =====
-// ==========================================================
+// ===== SEARCH =====
 function highlightText(text, term) {
   if (!term || !text) return text;
   const regex = new RegExp(
@@ -871,10 +938,8 @@ function highlightText(text, term) {
 }
 
 // ==========================================================
-// ===== KB + Assistant Answer Search (ranked, short, actionable) =====
+// Troubleshooting KB (single source of truth)
 // ==========================================================
-
-// KB entries (v1 priority list)
 const KB_TROUBLESHOOT = [
   {
     id: "vacuum-drops",
@@ -920,6 +985,7 @@ const KB_TROUBLESHOOT = [
       { label: "Gassing parameters", route: "screens/gassing" }
     ]
   },
+
   {
     id: "random-stop-mid-cycle",
     title: "Machine stops mid-cycle / random stop",
@@ -963,6 +1029,7 @@ const KB_TROUBLESHOOT = [
       { label: "Machine shot parameters", route: "screens/machine" }
     ]
   },
+
   {
     id: "core-stuck-eject",
     title: "Core stuck / eject problem",
@@ -1004,6 +1071,7 @@ const KB_TROUBLESHOOT = [
       { label: "Gassing parameters", route: "screens/gassing" }
     ]
   },
+
   {
     id: "cope-eject-seal",
     title: "Cope eject seal issue (re-seat / lower+raise table trick)",
@@ -1047,6 +1115,7 @@ const KB_TROUBLESHOOT = [
       { label: "PNEU — Sensors + Reset Air", route: "screens" }
     ]
   },
+
   {
     id: "gas-smell-exhaust",
     title: "Gas smell complaint / exhaust adjustment",
@@ -1086,6 +1155,7 @@ const KB_TROUBLESHOOT = [
       { label: "Gassing parameters", route: "screens/gassing" }
     ]
   },
+
   {
     id: "vent-marks-holes",
     title: "Holes/marks near vents (possible over-gassing symptom)",
@@ -1122,6 +1192,7 @@ const KB_TROUBLESHOOT = [
       { label: "Gassing parameters", route: "screens/gassing" }
     ]
   },
+
   {
     id: "cold-box-preheat",
     title: "Cold box start issues / preheating use (Pending)",
@@ -1166,12 +1237,11 @@ function scoreKBEntry(query, entry){
   let score = 0;
   const titleN = normalizeText(entry.title);
   const trigText = (entry.triggers || []).join(" ");
+  const trigN = normalizeText(trigText);
 
-  // strong title match
   if (titleN === q) score += 200;
   if (titleN.includes(q)) score += 120;
 
-  // trigger boosts + typo tolerance
   for (const t of entry.triggers || []){
     const nt = normalizeText(t);
     if (!nt) continue;
@@ -1184,12 +1254,11 @@ function scoreKBEntry(query, entry){
     }
   }
 
-  // token overlap across title + triggers + symptom
   const hay = `${entry.title} ${trigText} ${entry.symptom || ""}`;
   score += tokenOverlapScore(query, hay) * 6;
 
-  // small baseline preference for priority (lower = more important)
   score += Math.max(0, 20 - (entry.priority || 20));
+  if (trigN.includes(q) || q.includes(trigN)) score += 25;
 
   return score;
 }
@@ -1214,7 +1283,7 @@ function renderAssistantBlock(query){
     const next = (entry.nextSteps || []).slice(0, 4).map(x => `<li>${escHtml(x)}</li>`).join("");
 
     const pending = (entry.pending && entry.pending.length)
-      ? `<p><strong>Pending:</strong> ${escHtml(entry.pending[0])}</p>`
+      ? `<p style="white-space:pre-line"><strong>Pending:</strong> ${escHtml(entry.pending[0])}</p>`
       : "";
 
     const openRoute = `troubleshooting/${entry.id}`;
@@ -1222,7 +1291,7 @@ function renderAssistantBlock(query){
     return `
       <div class="card">
         <h3>Assistant Answer — ${escHtml(entry.title)}</h3>
-        <p><strong>Symptom:</strong> ${escHtml(entry.symptom || "—")}</p>
+        <p style="white-space:pre-line"><strong>Symptom:</strong> ${escHtml(entry.symptom || "—")}</p>
 
         <div style="margin-top:8px;">
           <strong>Fast first checks:</strong>
@@ -1351,7 +1420,7 @@ function renderTroubleshootingIssue(id){
     <div class="stack">
       <div class="card card--tip">
         <h3>Symptom</h3>
-        <p>${escHtml(entry.symptom || "—")}</p>
+        <p style="white-space:pre-line">${escHtml(entry.symptom || "—")}</p>
       </div>
 
       ${listCard("Fast first checks", entry.firstChecks, "tip")}
@@ -1376,6 +1445,7 @@ function renderTroubleshootingIssue(id){
 
 // ==========================================================
 // ROUTE HANDLER (hash → screens)
+// Keeps layout and existing nav; only adds troubleshooting routes.
 // ==========================================================
 function handleHashRoute(){
   const hash = (window.location.hash || "").replace(/^#/, "");
@@ -1384,14 +1454,15 @@ function handleHashRoute(){
     return;
   }
 
-  if (hash === "search"){ showSearch(); return; }
+  if (hash === "search"){
+    showSearch();
+    return;
+  }
 
-  // Screens
   if (hash === "screens"){ showScreensList(); return; }
   if (hash === "screens/gassing"){ showGassingParams(); return; }
   if (hash === "screens/machine"){ showMachineParams(); return; }
 
-  // Mixer
   if (hash === "mixer"){ showMixerList(); return; }
   if (hash.startsWith("mixer/")){
     const id = hash.split("/")[1] || "overview";
@@ -1400,7 +1471,6 @@ function handleHashRoute(){
     return;
   }
 
-  // Checklists
   if (hash === "checklists"){ showChecklistsList(); return; }
   if (hash.startsWith("checklists/")){
     const which = hash.split("/")[1];
@@ -1408,7 +1478,6 @@ function handleHashRoute(){
     return;
   }
 
-  // Troubleshooting
   if (hash === "troubleshooting" || hash === "troubleshoot"){
     homeView.hidden = true;
     detailView.hidden = false;
@@ -1430,13 +1499,10 @@ function handleHashRoute(){
     return;
   }
 
-  // Content pages
   showDetail(hash);
 }
 
-// ==========================================================
 // ===== SEARCH =====
-// ==========================================================
 let searchTimeout;
 
 function runSearch(q){
@@ -1446,7 +1512,6 @@ function runSearch(q){
 
   const hits = [];
 
-  // Assistant block
   const assistantHTML = renderAssistantBlock(termRaw);
 
   // CONTENT
@@ -1461,13 +1526,11 @@ function runSearch(q){
     if (hay.includes(term)) hits.push({type:"checklist", key, title:page.title, sub:page.subtitle});
   });
 
-  // Troubleshooting shortcut
   const troubleshootHay = "troubleshooting troubleshoot issue issues vacuum clamp eject stuck stop mid cycle smell odor vents preheat";
   if (tokenize(termRaw).some(w => troubleshootHay.includes(w))){
     hits.push({type:"route", key:"troubleshooting", title:"Troubleshooting", sub:"Symptoms → check first"});
   }
 
-  // Screens keywords
   const screenHay = "screens gassing machine shots pressure time exhaust sand lg pneu vacuum air";
   if (tokenize(termRaw).some(w => screenHay.includes(w))) {
     hits.push({type:"route", key:"screens", title:"Control Screens", sub:"Parameter & status reference"});
@@ -1488,7 +1551,7 @@ function runSearch(q){
     return;
   }
 
-  // de-dupe hits by route
+  // de-dupe
   const seen = new Set();
   const deduped = [];
   for (const hit of hits){
@@ -1519,9 +1582,7 @@ function runSearch(q){
   searchResults.innerHTML = assistantHTML + normalHTML;
 }
 
-// ==========================================================
 // ===== EVENTS =====
-// ==========================================================
 document.addEventListener("click", (e)=>{
 
   // Feedback open button
@@ -1543,7 +1604,6 @@ document.addEventListener("click", (e)=>{
     if (screenId === "gassingParams"){ showGassingParams(); return; }
     if (screenId === "machine"){ showMachineParams(); return; }
 
-    // bottom-sheet only screens
     if (screenId === "pneu" || screenId === "sand" || screenId === "lg"){
       const payload = SCREEN_SHEETS[screenId];
       showBottomSheet({
@@ -1640,7 +1700,9 @@ document.addEventListener("click", (e)=>{
     if (key === "home") showHome();
     else if (key === "screens") showScreensList();
     else if (key === "mixer") showMixerList();
-    else if (key === "troubleshoot") window.location.hash = "troubleshooting";
+    else if (key === "troubleshoot") {
+      window.location.hash = "troubleshooting";
+    }
     return;
   }
 });
@@ -1648,7 +1710,7 @@ document.addEventListener("click", (e)=>{
 // Close sheet
 sheetOverlay.addEventListener("click", hideParameterSheet);
 
-// Back behavior (keeps your logic + adds troubleshooting)
+// Back behavior
 backBtn.addEventListener("click", ()=>{
   if (currentView === "gassing-params" || currentView === "machine-params"){
     showScreensList(); return;
@@ -1675,13 +1737,11 @@ backBtn.addEventListener("click", ()=>{
 openSearch.addEventListener("click", showSearch);
 closeSearch.addEventListener("click", showHome);
 
-// Search debounce (guard if DOM missing)
-if (searchInput){
-  searchInput.addEventListener("input", (e)=>{
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(()=>runSearch(e.target.value), 200);
-  });
-}
+// Search debounce
+searchInput.addEventListener("input", (e)=>{
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(()=>runSearch(e.target.value), 200);
+});
 
 // Keyboard
 document.addEventListener("keydown", (e)=>{
@@ -1720,7 +1780,7 @@ bottomSheet.addEventListener("touchend", (e)=>{
   if (diff > 100) hideParameterSheet();
 },{passive:true});
 
-// Hash routing (so deep links work and search tiles just set hash)
+// Hash routing
 window.addEventListener("hashchange", handleHashRoute);
 
 // Init
