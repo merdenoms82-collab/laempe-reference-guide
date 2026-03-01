@@ -1,6 +1,10 @@
 // app.js
 // Laempe Reference Guide v1 — Search + Troubleshooting Upgrade (offline KB)
 // NOTE: Layout/UI is untouched. This file only adds KB content + search behavior + troubleshooting content.
+// ADD-ON (per request): Corebox Setup (loadbox) now renders step rows exactly like Shift Checklists (same UI).
+// - No route changes
+// - No tile/nav changes
+// - Only adds loadbox "sections" + a render branch that uses stepRow UI
 
 // ===== DOM =====
 const homeView = document.getElementById("homeView");
@@ -278,7 +282,7 @@ const SCREEN_SHEETS = {
   },
 };
 
-// ===== BASIC PAGES (Corebox Setup updated) =====
+// ===== BASIC PAGES =====
 const CONTENT = {
   basics: {
     title: "Machine Operation",
@@ -296,62 +300,52 @@ const CONTENT = {
     ],
   },
 
+  // ======================================================
+  // ADD-ON: loadbox now uses checklist-style rendering
+  // (same stepRow UI as Shift Checklists)
+  // ======================================================
   loadbox: {
     title: "Corebox Setup",
     subtitle: "Automatic load + manual (placeholder)",
-    blocks: [
+    sections: [
       {
-        h: "Automatic Corebox Loading (Crane + HMI)",
-        p: [
-          "1) Inspect the crane for wear. Verify hooks and chains are in safe working condition.",
-          "2) Lower the crane and attach the bottom hooks/chains.",
-          "3) BEFORE LIFTING: Confirm all 4 transport hooks connecting the two halves are engaged so the whole box lifts together.",
-          "",
-          "4) Lift slowly. Stay arm’s length away. Never stand under a suspended load.",
-          "5) Place the corebox on the carriage with the label “FRONT” facing you.",
-          "6) Ensure the box is seated level on the carriage.",
-          "7) Confirm pins are seated in the front and rear.",
-          "",
-          "8) AFTER SEATING: Remove all 4 transport hooks.",
-          "   - These hooks are for lifting/transport only.",
-          "   - If left installed, the machine can load/clamp and break the box or hardware.",
-          "",
-          "9) Remove chains and move the hoist out of the way.",
-          "",
-          "10) On the HMI: Database → dropdown select the box → press Load Corebox.",
-          "11) Verify the top-left display shows the correct box is loaded.",
-          "12) Mode screen: ensure Clamp is highlighted.",
-          "13) Put machine in Auto and press the green Start button.",
-          "14) Machine loads the box automatically.",
-          "",
-          "Pending confirmation: If your floor uses a different exact order, submit it in Feedback and we’ll lock the final wording.",
-        ].join("\n"),
+        label: "Automatic Corebox Loading (Crane + HMI)",
         type: "tip",
+        steps: [
+          "Inspect crane for wear; ensure hooks/chains are working and safe.",
+          "Lower crane and attach bottom hooks/chains to the corebox.",
+          "CRITICAL: Confirm all 4 transport hooks connecting the two halves are engaged so the whole box lifts together.",
+          "Lift slowly. Stay arm’s length away and never stand under a suspended load.",
+          "Place on carriage with label “FRONT” facing you.",
+          "Ensure box is seated level.",
+          "Confirm pins are seated in front and rear.",
+          "CRITICAL: After seating box, remove all 4 transport hooks. Leaving them installed can break something during load/clamp.",
+          "Remove chains and move hoist out of the way.",
+          "On HMI: Database → dropdown select box → Load Corebox button.",
+          "Verify top-left display shows correct box loaded.",
+          "Mode screen: ensure Clamp highlighted.",
+          "Put machine in Auto and press green Start; machine loads box automatically.",
+          "Critical note: corebox halves are connected by 4 transport hooks; after seating box, remove them so it can load without breaking."
+        ],
       },
       {
-        h: "⚠ WARNING — Transport Hooks (Critical)",
-        p: [
-          "The corebox halves are connected by 4 transport hooks for lifting.",
-          "After the box is seated on the carriage, REMOVE the 4 transport hooks before auto-load/clamp.",
-          "Leaving them installed can cause the machine to load/clamp and break something.",
-        ].join("\n"),
+        label: "High-Risk Mistakes (Damage Risk)",
         type: "warn",
+        steps: [
+          "Transport hooks left installed (damage risk).",
+          "Box facing wrong direction (“FRONT” not facing you).",
+          "Pins not seated front/rear.",
+          "Wrong corebox selected in Database.",
+          "Standing too close during lift / under suspended load."
+        ],
       },
       {
-        h: "High-Risk Mistakes",
-        p: [
-          "• Transport hooks left installed (damage risk).",
-          "• Box facing wrong direction (FRONT not facing you).",
-          "• Pins not seated front/rear.",
-          "• Wrong corebox selected in Database.",
-          "• Standing too close during lift.",
-        ].join("\n"),
-        type: "warn",
-      },
-      {
-        h: "Manual Corebox Load (placeholder)",
-        p: "Placeholder — Manual loading procedure will be added step-by-step next.\n\nPending confirmation: waiting on floor-verified manual steps.",
+        label: "Manual Corebox Load (Placeholder)",
         type: "tip",
+        steps: [
+          "Placeholder. We will add the manual loading method step-by-step next.",
+          "Pending confirmation: confirm manual method for this machine before publishing."
+        ],
       },
     ],
   },
@@ -758,6 +752,39 @@ function renderContentPage(key) {
           <div class="tile__title">Open Feedback Form</div>
           <div class="tile__sub">Google Form (external link)</div>
         </button>
+      </div>
+    `;
+    return;
+  }
+
+  // ======================================================
+  // ADD-ON: Corebox Setup renders like Shift Checklists
+  // ======================================================
+  if (key === "loadbox" && Array.isArray(page.sections)) {
+    let n = 1;
+    dynamicContent.innerHTML = `
+      <div class="stack">
+        ${page.sections.map((sec) => {
+          const klass =
+            sec.type === "warn"
+              ? "card card--warn"
+              : sec.type === "tip"
+              ? "card card--tip"
+              : "card";
+          return `
+            <div class="${klass}">
+              <div class="sectionLabel">${escHtml(sec.label || "")}</div>
+              <div class="stepsWrap">
+                ${(sec.steps || []).map((step) => `
+                  <div class="stepRow">
+                    <div class="stepNum">${n++}</div>
+                    <div class="stepText">${escHtml(step)}</div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }).join("")}
       </div>
     `;
     return;
@@ -1526,7 +1553,9 @@ function runSearch(q){
 
   // CONTENT
   Object.entries(CONTENT).forEach(([key,page])=>{
-    const hay = (page.title+" "+page.subtitle+" "+(page.blocks||[]).map(b=>b.h+" "+b.p).join(" ")).toLowerCase();
+    const blocksText = (page.blocks || []).map(b=>b.h+" "+b.p).join(" ");
+    const sectionsText = (page.sections || []).map(s=>(s.label||"")+" "+(s.steps||[]).join(" ")).join(" ");
+    const hay = (page.title+" "+page.subtitle+" "+blocksText+" "+sectionsText).toLowerCase();
     if (hay.includes(term)) hits.push({type:"page", key, title:page.title, sub:page.subtitle});
   });
 
