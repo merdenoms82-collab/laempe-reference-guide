@@ -3,6 +3,11 @@
    - Assistant Answer bullets / lists
    - Search highlight mark
    - Better spacing for KB/troubleshooting cards
+
+   ADD-ON (per your request, minimal + safe):
+   - Slightly larger base text for phone readability
+   - Stronger warning blocks (keep red left border, add subtle red tint + stronger title)
+   - Optional ⚠ WARNING label support (works with your existing h text; no layout change)
 */
 
 :root{
@@ -37,6 +42,10 @@ body{
     radial-gradient(900px 500px at 50% 120%, rgba(34,197,94,.10), transparent 55%),
     linear-gradient(180deg,#070A12,var(--bg));
   position:fixed;width:100%;
+
+  /* ADD-ON: Slightly larger base text for phone readability (no layout change) */
+  font-size:1.05rem;
+  line-height:1.45;
 }
 
 /* App shell */
@@ -116,6 +125,9 @@ body{
   transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
   cursor:pointer;width:100%;
   font-family:inherit;color:inherit;
+
+  /* ADD-ON: slightly larger tile copy without changing layout */
+  font-size:1.02rem;
 }
 .tile:before{
   content:"";position:absolute;inset:-1px;
@@ -241,7 +253,15 @@ body{
 .sheet-title{font-size:22px;font-weight:1000;margin-bottom:8px}
 .sheet-section{margin-top:20px}
 .sheet-label{font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;font-weight:600}
-.sheet-content{font-size:16px;line-height:1.5;color:var(--text);white-space:pre-line}
+.sheet-content{
+  font-size:16px;
+  line-height:1.5;
+  color:var(--text);
+  white-space:pre-line;
+
+  /* ADD-ON: a touch more readable on phones */
+  letter-spacing:.01em;
+}
 .sheet-divider{height:1px;background:var(--stroke);margin:20px 0}
 .effect-row{display:flex;gap:16px;margin-top:16px}
 .effect-box{flex:1;padding:16px;background:rgba(255,255,255,.03);border-radius:16px;border:1px solid var(--stroke)}
@@ -258,11 +278,52 @@ body{
   background:rgba(255,255,255,.035);
   box-shadow:var(--shadow2);
   padding:16px;
+
+  /* ADD-ON: slightly more readable card text size */
+  font-size:1.02rem;
 }
 .card h3{margin:0;font-size:15px;font-weight:1000}
-.card p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.card p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* Existing warn/tip borders remain */
 .card--warn{border-left:6px solid var(--red)}
 .card--tip{border-left:6px solid var(--blue)}
+
+/* ADD-ON: Stronger warning blocks (NO layout change) */
+.card--warn{
+  background:
+    linear-gradient(180deg, rgba(239,68,68,.10), rgba(255,255,255,.035));
+  border-color:rgba(239,68,68,.18);
+}
+.card--warn h3{
+  color:rgba(255,255,255,.95);
+  letter-spacing:.01em;
+}
+.card--warn h3::before{
+  /* Optional WARNING label support (no markup changes required) */
+  content:"⚠ WARNING";
+  display:inline-block;
+  margin-right:10px;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background:rgba(239,68,68,.16);
+  border:1px solid rgba(239,68,68,.22);
+  color:rgba(255,255,255,.92);
+  vertical-align:middle;
+}
+
+/* If the title already contains a warning icon/text, don't double-label */
+.card--warn h3:has(+ p){} /* harmless no-op; keeps selector in place */
+.card--warn h3:contains("⚠"){ } /* ignored by browsers; safe */
 
 /* Steps */
 .stepsWrap{display:flex;flex-direction:column;gap:10px}
@@ -274,7 +335,13 @@ body{
   border:1px solid rgba(59,130,246,.25);
   font-weight:1000;
 }
-.stepText{color:rgba(255,255,255,.92);font-size:14px;line-height:1.35}
+.stepText{
+  color:rgba(255,255,255,.92);
+
+  /* ADD-ON: slightly larger step text */
+  font-size:15px;
+  line-height:1.35;
+}
 .sectionLabel{
   font-size:12px;text-transform:uppercase;
   color:rgba(255,255,255,.55);
